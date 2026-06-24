@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bismillah Computer — Shop Management System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-card: #1c2230;
+    --bg-hover: #21293a;
+    --border: #2d3748;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59,130,246,0.15);
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #484f58;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --purple: #a855f7;
+    --cyan: #06b6d4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Sidebar */
+  #sidebar {
+    width: 240px; min-width: 240px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; height: 100vh; z-index: 50;
+    transition: transform 0.3s ease;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; margin: 2px 8px;
+    border-radius: 8px; cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 13.5px; font-weight: 500;
+    transition: all 0.18s ease;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Main */
+  #main-content { margin-left: 240px; padding: 28px 32px; min-height: 100vh; }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--accent); color: white;
+    border: none; border-radius: 8px;
+    padding: 9px 18px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.18s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.35); }
+  .btn-secondary {
+    background: transparent; color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 18px; font-size: 13.5px; font-weight: 500;
+    cursor: pointer; transition: all 0.18s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); border-color: #4b5563; }
+  .btn-danger { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; padding: 5px 11px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.18s; }
+  .btn-danger:hover { background: rgba(239,68,68,0.22); }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
+  .badge-green { background: rgba(34,197,94,0.13); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+  .badge-red { background: rgba(239,68,68,0.13); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .badge-yellow { background: rgba(245,158,11,0.13); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+  .badge-blue { background: rgba(59,130,246,0.13); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+  .badge-purple { background: rgba(168,85,247,0.13); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+  .badge-cyan { background: rgba(6,182,212,0.13); color: #22d3ee; border: 1px solid rgba(6,182,212,0.25); }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+  .data-table td { padding: 12px 14px; font-size: 13.5px; color: var(--text-primary); border-bottom: 1px solid rgba(45,55,72,0.5); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.025); }
+
+  /* Inputs */
+  .form-input {
+    background: var(--bg-primary); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-primary);
+    padding: 9px 12px; font-size: 13.5px; width: 100%;
+    outline: none; transition: border-color 0.18s;
+    font-family: 'Inter', sans-serif;
+  }
+  .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .form-input::placeholder { color: var(--text-muted); }
+  select.form-input option { background: #1c2230; }
+  label.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  .modal-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 540px; max-width: 95vw; max-height: 90vh; overflow-y: auto; animation: slideUp 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* Section headers */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .section-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+  /* Top bar */
+  #topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+
+  /* Warranty search */
+  .warranty-result { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px; }
+
+  /* Invoice */
+  .invoice-box { background: white; color: #111; border-radius: 12px; padding: 32px; max-width: 600px; }
+  .invoice-box h1 { font-size: 26px; font-weight: 800; color: #1e40af; }
+
+  /* Customer view */
+  .customer-view { background: var(--bg-primary); min-height: 100vh; }
+
+  /* Section visibility */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Toggle switch */
+  .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #374151; border-radius: 24px; transition: .3s; }
+  .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .3s; }
+  input:checked + .toggle-slider { background: var(--accent); }
+  input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  /* Search box */
+  .search-wrap { position: relative; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 15px; height: 15px; }
+  .search-wrap input { padding-left: 34px; }
+
+  /* Quick action buttons */
+  .quick-action { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 13px 18px; cursor: pointer; transition: all 0.18s; }
+  .quick-action:hover { border-color: var(--accent); background: var(--accent-glow); transform: translateY(-1px); }
+  .quick-action-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .quick-action span { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg-secondary); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 10px; padding: 12px 18px; font-size: 13.5px; font-weight: 500; z-index: 1000; display: none; color: var(--text-primary); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
+  /* Low stock indicator */
+  .low-stock-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red); margin-right: 5px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* Print styles */
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: fixed; inset: 0; background: white; z-index: 9999; padding: 40px; }
+  }
+
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main-content { margin-left: 0; padding: 16px; }
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 8px 0; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--bg-hover); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; font-size: 12px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div style="padding:20px 16px 12px;">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon">
+        <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text-primary);">TechCore</div>
+        <div style="font-size:11px;color:var(--text-muted);">Shop Management</div>
+      </div>
+    </div>
+  </div>
+  <div class="divider" style="margin:4px 0 10px;"></div>
+  <div style="padding:0 8px;flex:1;overflow-y:auto;">
+    <div style="font-size:10px;font-weight:700;color:var(--text-muted);padding:6px 8px;text-transform:uppercase;letter-spacing:0.08em;">Main</div>
+    <div class="nav-item active" onclick="navigate('dashboard')" id="nav-dashboard">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="navigate('inventory')" id="nav-inventory">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h18v4H3zM3 11h18v2H3zM3 17h18v4H3z"/></svg>
+      Product Inventory
+    </div>
+    <div class="nav-item" onclick="navigate('invoices')" id="nav-invoices">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Invoice & Sales
+    </div>
+    <div class="nav-item" onclick="navigate('warranty')" id="nav-warranty">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Warranty Tracker
+    </div>
+    <div class="divider" style="margin:10px 0;"></div>
+    <div style="font-size:10px;font-weight:700;color:var(--text-muted);padding:6px 8px;text-transform:uppercase;letter-spacing:0.08em;">View</div>
+    <div class="nav-item" onclick="navigate('customer')" id="nav-customer">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Customer Portal
+    </div>
+  </div>
+  <div style="padding:14px 16px;border-top:1px solid var(--border);">
+    <div style="font-size:11px;color:var(--text-muted);">TechCore v2.1.0</div>
+    <div style="font-size:11px;color:var(--text-muted);">© 2025 All rights reserved</div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div id="main-content">
+
+  <!-- DASHBOARD -->
+  <div id="section-dashboard" class="section active">
+    <div id="topbar">
+      <div>
+        <div class="section-title">Dashboard Overview</div>
+        <div class="section-subtitle">Welcome back! Here's what's happening in your shop today.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:12px;color:var(--text-muted);" id="current-date"></div>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;">
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Total Products</div>
+          <div style="width:34px;height:34px;background:rgba(59,130,246,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:800;color:var(--text-primary);" id="stat-total">0</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Items in inventory</div>
+      </div>
+
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Low Stock Alert</div>
+          <div style="width:34px;height:34px;background:rgba(245,158,11,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="#fbbf24" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:800;color:#fbbf24;" id="stat-lowstock">0</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Products need restock</div>
+      </div>
+
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Warranty Claims</div>
+          <div style="width:34px;height:34px;background:rgba(168,85,247,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:800;color:#c084fc;" id="stat-warranty">0</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Active service cases</div>
+      </div>
+
+      <div class="stat-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Total Invoices</div>
+          <div style="width:34px;height:34px;background:rgba(34,197,94,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="#4ade80" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:800;color:#4ade80;" id="stat-invoices">0</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Invoices generated</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card" style="padding:20px;margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px;">Quick Actions</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div class="quick-action" onclick="openModal('add-product-modal')">
+          <div class="quick-action-icon" style="background:rgba(59,130,246,0.12);">
+            <svg width="16" height="16" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <span>Add New Product</span>
+        </div>
+        <div class="quick-action" onclick="navigate('invoices')">
+          <div class="quick-action-icon" style="background:rgba(34,197,94,0.12);">
+            <svg width="16" height="16" fill="none" stroke="#4ade80" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+          </div>
+          <span>Create Invoice</span>
+        </div>
+        <div class="quick-action" onclick="navigate('warranty')">
+          <div class="quick-action-icon" style="background:rgba(168,85,247,0.12);">
+            <svg width="16" height="16" fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <span>Check Warranty</span>
+        </div>
+        <div class="quick-action" onclick="navigate('inventory')">
+          <div class="quick-action-icon" style="background:rgba(6,182,212,0.12);">
+            <svg width="16" height="16" fill="none" stroke="#22d3ee" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          </div>
+          <span>View Inventory</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Inventory -->
+    <div class="card" style="padding:20px;">
+      <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">Recent Products</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="dash-recent-table">
+          <thead><tr>
+            <th>Product</th><th>Category</th><th>Serial</th><th>Stock</th><th>Warranty</th>
+          </tr></thead>
+          <tbody id="dash-recent-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div id="section-inventory" class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Product Inventory</div>
+        <div class="section-subtitle">Manage your computer hardware and peripherals stock.</div>
+      </div>
+      <button class="btn-primary" onclick="openModal('add-product-modal')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Product
+      </button>
+    </div>
+
+    <div class="card" style="padding:20px;">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <div class="search-wrap" style="flex:1;min-width:200px;">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="form-input" id="inv-search" type="text" placeholder="Search by name, serial, or model…" oninput="filterInventory()" />
+        </div>
+        <select class="form-input" id="inv-category-filter" style="width:auto;min-width:160px;" onchange="filterInventory()">
+          <option value="">All Categories</option>
+          <option>Motherboard</option><option>RAM</option><option>Hard Disk</option>
+          <option>SSD</option><option>Laptop</option><option>Monitor</option>
+          <option>GPU</option><option>Processor</option><option>Peripheral</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>#</th><th>Product Name</th><th>Category</th><th>Model</th>
+            <th>Serial Number</th><th>Warranty</th><th>Qty</th><th>Status</th><th>Action</th>
+          </tr></thead>
+          <tbody id="inventory-body"></tbody>
+        </table>
+      </div>
+      <div id="inv-empty" style="text-align:center;padding:40px;color:var(--text-muted);display:none;">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+        No products found
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICES -->
+  <div id="section-invoices" class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Invoice & Sales</div>
+        <div class="section-subtitle">Generate and manage customer sales invoices.</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+      <!-- Create Invoice Form -->
+      <div class="card" style="padding:22px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+          New Invoice
+        </div>
+        <div style="display:grid;gap:14px;">
+          <div>
+            <label class="form-label">Customer Name</label>
+            <input class="form-input" id="inv-cust-name" type="text" placeholder="e.g. Rahim Uddin" />
+          </div>
+          <div>
+            <label class="form-label">Customer Phone</label>
+            <input class="form-input" id="inv-cust-phone" type="text" placeholder="e.g. 01711-000000" />
+          </div>
+          <div>
+            <label class="form-label">Select Product</label>
+            <select class="form-input" id="inv-product-select">
+              <option value="">— Select a product —</option>
+            </select>
+          </div>
+          <div id="inv-product-preview" style="display:none;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:12px;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">PRODUCT DETAILS</div>
+            <div id="inv-preview-content" style="font-size:13px;color:var(--text-secondary);"></div>
+          </div>
+          <div>
+            <label class="form-label">Unit Price (BDT)</label>
+            <input class="form-input" id="inv-price" type="number" placeholder="e.g. 12500" />
+          </div>
+          <div>
+            <label class="form-label">Quantity</label>
+            <input class="form-input" id="inv-qty" type="number" min="1" value="1" />
+          </div>
+          <button class="btn-primary" style="width:100%;justify-content:center;" onclick="generateInvoice()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Generate Invoice
+          </button>
+        </div>
+      </div>
+
+      <!-- Invoice Preview -->
+      <div id="invoice-preview-wrap" style="display:none;">
+        <div style="margin-bottom:12px;display:flex;gap:10px;">
+          <button class="btn-primary" onclick="printInvoice()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Invoice
+          </button>
+          <button class="btn-secondary" onclick="document.getElementById('invoice-preview-wrap').style.display='none'">Clear</button>
+        </div>
+        <div id="print-area">
+          <div class="invoice-box" id="invoice-content"></div>
+        </div>
+      </div>
+
+      <!-- Past Invoices (if no preview) -->
+      <div id="past-invoices-panel" class="card" style="padding:22px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">Past Invoices</div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Invoice #</th><th>Customer</th><th>Product</th><th>Amount</th><th>Date</th></tr></thead>
+            <tbody id="past-invoices-body"></tbody>
+          </table>
+        </div>
+        <div id="no-invoices" style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">No invoices yet. Create your first one!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WARRANTY -->
+  <div id="section-warranty" class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Warranty Service Tracker</div>
+        <div class="section-subtitle">Track warranty claims and service status by serial number.</div>
+      </div>
+      <button class="btn-primary" onclick="openModal('add-claim-modal')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Claim
+      </button>
+    </div>
+
+    <!-- Warranty Lookup -->
+    <div class="card" style="padding:22px;margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Warranty Lookup by Serial Number</div>
+      <div style="display:flex;gap:10px;">
+        <div class="search-wrap" style="flex:1;">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="form-input" id="warranty-search-input" type="text" placeholder="Enter Serial Number (e.g. SN-MB-001)…" onkeyup="if(event.key==='Enter')lookupWarranty()" />
+        </div>
+        <button class="btn-primary" onclick="lookupWarranty()">Check Status</button>
+      </div>
+      <div id="warranty-result"></div>
+    </div>
+
+    <!-- Claims Table -->
+    <div class="card" style="padding:22px;">
+      <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">Active Service Claims</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>Claim ID</th><th>Serial Number</th><th>Product</th><th>Customer</th><th>Issue</th><th>Status</th><th>Date</th><th>Action</th>
+          </tr></thead>
+          <tbody id="claims-body"></tbody>
+        </table>
+      </div>
+      <div id="no-claims" style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;display:none;">No active service claims.</div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER VIEW -->
+  <div id="section-customer" class="section">
+    <div style="max-width:680px;margin:0 auto;padding:20px 0;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="width:60px;height:60px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+          <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div style="font-size:26px;font-weight:800;color:var(--text-primary);">TechCore Customer Portal</div>
+        <div style="font-size:14px;color:var(--text-secondary);margin-top:6px;">Check your product warranty status or browse available stock.</div>
+      </div>
+
+      <!-- Warranty Check Card -->
+      <div class="card" style="padding:24px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:36px;height:36px;background:rgba(168,85,247,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);">Warranty Check</div>
+            <div style="font-size:12px;color:var(--text-secondary);">Enter your product serial number to check warranty status.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <input class="form-input" id="cust-serial-input" type="text" placeholder="Serial Number (e.g. SN-LT-005)" />
+          <button class="btn-primary" onclick="customerWarrantyCheck()">Check</button>
+        </div>
+        <div id="cust-warranty-result" style="margin-top:14px;"></div>
+      </div>
+
+      <!-- Browse Stock Card -->
+      <div class="card" style="padding:24px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:36px;height:36px;background:rgba(59,130,246,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          </div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);">Browse Available Stock</div>
+            <div style="font-size:12px;color:var(--text-secondary);">Find products currently in stock at our shop.</div>
+          </div>
+        </div>
+        <div class="search-wrap" style="margin-bottom:14px;">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="form-input" id="cust-stock-search" type="text" placeholder="Search products…" oninput="customerStockSearch()" />
+        </div>
+        <div id="cust-stock-results"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- Add Product Modal -->
+<div class="modal-overlay" id="add-product-modal">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <div style="font-size:17px;font-weight:700;color:var(--text-primary);">Add New Product</div>
+      <button onclick="closeModal('add-product-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div>
+        <label class="form-label">Product Name *</label>
+        <input class="form-input" id="p-name" type="text" placeholder="e.g. Asus Prime B550" />
+      </div>
+      <div>
+        <label class="form-label">Category *</label>
+        <select class="form-input" id="p-category">
+          <option value="">Select…</option>
+          <option>Motherboard</option><option>RAM</option><option>Hard Disk</option>
+          <option>SSD</option><option>Laptop</option><option>Monitor</option>
+          <option>GPU</option><option>Processor</option><option>Peripheral</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Model *</label>
+        <input class="form-input" id="p-model" type="text" placeholder="e.g. B550-Plus" />
+      </div>
+      <div>
+        <label class="form-label">Serial Number *</label>
+        <input class="form-input" id="p-serial" type="text" placeholder="e.g. SN-MB-007" />
+      </div>
+      <div>
+        <label class="form-label">Warranty Period *</label>
+        <select class="form-input" id="p-warranty">
+          <option>6 Months</option><option>1 Year</option><option>2 Years</option>
+          <option>3 Years</option><option>5 Years</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Quantity *</label>
+        <input class="form-input" id="p-qty" type="number" min="0" value="1" />
+      </div>
+      <div style="grid-column:span 2;">
+        <label class="form-label">Purchase Price (BDT)</label>
+        <input class="form-input" id="p-price" type="number" placeholder="e.g. 8500" />
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="closeModal('add-product-modal')">Cancel</button>
+      <button class="btn-primary" onclick="addProduct()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Product
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Claim Modal -->
+<div class="modal-overlay" id="add-claim-modal">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <div style="font-size:17px;font-weight:700;color:var(--text-primary);">New Warranty Claim</div>
+      <button onclick="closeModal('add-claim-modal')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="display:grid;gap:14px;">
+      <div>
+        <label class="form-label">Serial Number</label>
+        <input class="form-input" id="cl-serial" type="text" placeholder="Enter product serial number" />
+      </div>
+      <div>
+        <label class="form-label">Customer Name</label>
+        <input class="form-input" id="cl-customer" type="text" placeholder="Customer full name" />
+      </div>
+      <div>
+        <label class="form-label">Customer Phone</label>
+        <input class="form-input" id="cl-phone" type="text" placeholder="01XXX-XXXXXX" />
+      </div>
+      <div>
+        <label class="form-label">Issue Description</label>
+        <input class="form-input" id="cl-issue" type="text" placeholder="e.g. Won't power on" />
+      </div>
+      <div>
+        <label class="form-label">Status</label>
+        <select class="form-input" id="cl-status">
+          <option value="Pending">Pending</option>
+          <option value="In Repair">In Repair</option>
+          <option value="Ready for Pickup">Ready for Pickup</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="closeModal('add-claim-modal')">Cancel</button>
+      <button class="btn-primary" onclick="addClaim()">Submit Claim</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast">✓ Action completed successfully</div>
+
+<!-- Print Area hidden element for invoice -->
+<script>
+// =================== STATE ===================
+const state = {
+  products: [
+    { id:1, name:'Asus Prime Motherboard', category:'Motherboard', model:'B550-Plus', serial:'SN-MB-001', warranty:'2 Years', qty:5, price:12500, purchaseDate:'2023-06-15' },
+    { id:2, name:'Corsair Vengeance RAM', category:'RAM', model:'CMK16GX4M2B3200C16', serial:'SN-RM-002', warranty:'Lifetime', qty:12, price:4800, purchaseDate:'2023-08-20' },
+    { id:3, name:'Seagate Barracuda HDD', category:'Hard Disk', model:'ST2000DM008', serial:'SN-HD-003', warranty:'2 Years', qty:2, price:6200, purchaseDate:'2023-07-10' },
+    { id:4, name:'Samsung 970 EVO SSD', category:'SSD', model:'MZ-V7E500', serial:'SN-SD-004', warranty:'5 Years', qty:8, price:9500, purchaseDate:'2023-09-05' },
+    { id:5, name:'HP Pavilion Laptop', category:'Laptop', model:'15-eg2xxx', serial:'SN-LT-005', warranty:'1 Year', qty:1, price:75000, purchaseDate:'2024-01-12' },
+    { id:6, name:'NVIDIA GTX 1660 Super', category:'GPU', model:'GTX 1660 SUPER OC', serial:'SN-GP-006', warranty:'3 Years', qty:0, price:28000, purchaseDate:'2023-11-18' },
+  ],
+  invoices: [
+    { id:'INV-001', customer:'Karim Hassan', phone:'01711-112233', product:'HP Pavilion Laptop', serial:'SN-LT-005', price:75000, qty:1, date:'2024-01-15' },
+    { id:'INV-002', customer:'Nasrin Akter', phone:'01855-667788', product:'Samsung 970 EVO SSD', serial:'SN-SD-004', price:9500, qty:2, date:'2024-02-10' },
+  ],
+  claims: [
+    { id:'CLM-001', serial:'SN-MB-001', product:'Asus Prime Motherboard', customer:'Rahim Uddin', phone:'01912-334455', issue:'No display output', status:'In Repair', date:'2024-03-01' },
+    { id:'CLM-002', serial:'SN-LT-005', product:'HP Pavilion Laptop', customer:'Karim Hassan', phone:'01711-112233', issue:'Battery not charging', status:'Ready for Pickup', date:'2024-03-10' },
+    { id:'CLM-003', serial:'SN-RM-002', product:'Corsair Vengeance RAM', customer:'Sadia Islam', phone:'01633-998877', issue:'System not recognizing', status:'Pending', date:'2024-03-18' },
+  ],
+  nextProductId: 7,
+  nextClaimId: 4,
+  nextInvoiceId: 3,
+};
+
+// =================== NAVIGATION ===================
+function navigate(section) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + section).classList.add('active');
+  document.getElementById('nav-' + section).classList.add('active');
+  if(section==='dashboard') refreshDashboard();
+  if(section==='inventory') renderInventory();
+  if(section==='invoices') { renderInvoiceProductSelect(); renderPastInvoices(); }
+  if(section==='warranty') renderClaims();
+  if(section==='customer') { renderCustomerStock(''); }
+}
+
+// =================== MODALS ===================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+});
+
+// =================== TOAST ===================
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = (isError ? '✗ ' : '✓ ') + msg;
+  t.style.borderLeftColor = isError ? 'var(--red)' : 'var(--green)';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display='none'; }, 3000);
+}
+
+// =================== HELPERS ===================
+function warrantyDaysLeft(purchaseDate, period) {
+  const years = period === 'Lifetime' ? 99 : parseInt(period);
+  if(isNaN(years)) return null;
+  const expiry = new Date(purchaseDate);
+  expiry.setFullYear(expiry.getFullYear() + years);
+  const today = new Date();
+  const diff = Math.floor((expiry - today) / (1000*60*60*24));
+  return { days: diff, expiry: expiry.toISOString().split('T')[0] };
+}
+
+function stockBadge(qty) {
+  if(qty === 0) return '<span class="badge badge-red">● Out of Stock</span>';
+  if(qty <= 2) return `<span class="badge badge-yellow">⚠ Low Stock (${qty})</span>`;
+  return `<span class="badge badge-green">● In Stock (${qty})</span>`;
+}
+
+function statusBadge(s) {
+  const map = {
+    'Pending':'badge-yellow', 'In Repair':'badge-blue',
+    'Ready for Pickup':'badge-green', 'Completed':'badge-purple'
+  };
+  return `<span class="badge ${map[s]||'badge-cyan'}">${s}</span>`;
+}
+
+function warrantyBadge(purchaseDate, period) {
+  if(period === 'Lifetime') return '<span class="badge badge-cyan">Lifetime</span>';
+  const w = warrantyDaysLeft(purchaseDate, period);
+  if(!w) return '<span class="badge badge-red">Unknown</span>';
+  if(w.days < 0) return '<span class="badge badge-red">Expired</span>';
+  if(w.days < 90) return `<span class="badge badge-yellow">Expiring Soon</span>`;
+  return `<span class="badge badge-green">Valid</span>`;
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+}
+
+function formatBDT(n) { return 'BDT ' + Number(n).toLocaleString('en-IN'); }
+
+// =================== DASHBOARD ===================
+function refreshDashboard() {
+  document.getElementById('stat-total').textContent = state.products.length;
+  document.getElementById('stat-lowstock').textContent = state.products.filter(p=>p.qty<=2).length;
+  document.getElementById('stat-warranty').textContent = state.claims.filter(c=>c.status!=='Completed').length;
+  document.getElementById('stat-invoices').textContent = state.invoices.length;
+
+  const tbody = document.getElementById('dash-recent-body');
+  const recent = [...state.products].slice(-5).reverse();
+  tbody.innerHTML = recent.map(p => `<tr>
+    <td><div style="font-weight:600">${p.name}</div></td>
+    <td><span class="chip">${p.category}</span></td>
+    <td><span class="mono" style="font-size:12px;color:var(--text-secondary)">${p.serial}</span></td>
+    <td>${stockBadge(p.qty)}</td>
+    <td>${warrantyBadge(p.purchaseDate, p.warranty)} <span style="font-size:12px;color:var(--text-muted)">${p.warranty}</span></td>
+  </tr>`).join('');
+
+  // Date
+  document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// =================== INVENTORY ===================
+function renderInventory(filtered) {
+  const list = filtered !== undefined ? filtered : state.products;
+  const tbody = document.getElementById('inventory-body');
+  const empty = document.getElementById('inv-empty');
+  if(list.length === 0) {
+    tbody.innerHTML=''; empty.style.display='block'; return;
+  }
+  empty.style.display='none';
+  tbody.innerHTML = list.map((p,i) => `<tr>
+    <td style="color:var(--text-muted);font-size:12px;">${i+1}</td>
+    <td><div style="font-weight:600;color:var(--text-primary)">${p.name}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">${p.model}</div></td>
+    <td><span class="chip">${p.category}</span></td>
+    <td style="color:var(--text-secondary)">${p.model}</td>
+    <td><span class="mono" style="font-size:12px;color:var(--cyan)">${p.serial}</span></td>
+    <td>${warrantyBadge(p.purchaseDate, p.warranty)} <span style="font-size:12px;color:var(--text-muted)">${p.warranty}</span></td>
+    <td style="text-align:center;font-weight:700">${p.qty}</td>
+    <td>${stockBadge(p.qty)}</td>
+    <td><button class="btn-danger" onclick="deleteProduct(${p.id})">Remove</button></td>
+  </tr>`).join('');
+}
+
+function filterInventory() {
+  const q = document.getElementById('inv-search').value.toLowerCase();
+  const cat = document.getElementById('inv-category-filter').value;
+  const filtered = state.products.filter(p => {
+    const matchQ = !q || p.name.toLowerCase().includes(q) || p.serial.toLowerCase().includes(q) || p.model.toLowerCase().includes(q);
+    const matchC = !cat || p.category === cat;
+    return matchQ && matchC;
+  });
+  renderInventory(filtered);
+}
+
+function addProduct() {
+  const name = document.getElementById('p-name').value.trim();
+  const cat  = document.getElementById('p-category').value;
+  const model = document.getElementById('p-model').value.trim();
+  const serial = document.getElementById('p-serial').value.trim();
+  const warranty = document.getElementById('p-warranty').value;
+  const qty = parseInt(document.getElementById('p-qty').value) || 0;
+  const price = parseFloat(document.getElementById('p-price').value) || 0;
+
+  if(!name||!cat||!model||!serial) { showToast('Please fill all required fields.', true); return; }
+  if(state.products.find(p=>p.serial===serial)) { showToast('Serial number already exists!', true); return; }
+
+  state.products.push({ id:state.nextProductId++, name, category:cat, model, serial, warranty, qty, price, purchaseDate: new Date().toISOString().split('T')[0] });
+  ['p-name','p-model','p-serial','p-price'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-category').value='';
+  document.getElementById('p-qty').value='1';
+  closeModal('add-product-modal');
+  renderInventory();
+  refreshDashboard();
+  showToast('Product added successfully!');
+}
+
+function deleteProduct(id) {
+  if(!confirm('Remove this product from inventory?')) return;
+  state.products = state.products.filter(p=>p.id!==id);
+  renderInventory();
+  refreshDashboard();
+  showToast('Product removed.');
+}
+
+// =================== INVOICES ===================
+function renderInvoiceProductSelect() {
+  const sel = document.getElementById('inv-product-select');
+  sel.innerHTML = '<option value="">— Select a product —</option>';
+  state.products.filter(p=>p.qty>0).forEach(p=>{
+    const opt = document.createElement('option');
+    opt.value = p.serial;
+    opt.textContent = `${p.name} — ${p.serial}`;
+    sel.appendChild(opt);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('inv-product-select').addEventListener('change', function() {
+    const serial = this.value;
+    const preview = document.getElementById('inv-product-preview');
+    const content = document.getElementById('inv-preview-content');
+    if(!serial) { preview.style.display='none'; return; }
+    const p = state.products.find(x=>x.serial===serial);
+    if(p) {
+      content.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div><span style="color:var(--text-muted)">Name:</span> ${p.name}</div>
+        <div><span style="color:var(--text-muted)">Model:</span> ${p.model}</div>
+        <div><span style="color:var(--text-muted)">Serial:</span> <span class="mono" style="color:var(--cyan)">${p.serial}</span></div>
+        <div><span style="color:var(--text-muted)">Warranty:</span> ${p.warranty}</div>
+        <div><span style="color:var(--text-muted)">Stock:</span> ${p.qty} units</div>
+        <div><span style="color:var(--text-muted)">Base Price:</span> ${formatBDT(p.price)}</div>
+      </div>`;
+      document.getElementById('inv-price').value = p.price;
+      preview.style.display='block';
+    }
+  });
+});
+
+function generateInvoice() {
+  const custName = document.getElementById('inv-cust-name').value.trim();
+  const custPhone = document.getElementById('inv-cust-phone').value.trim();
+  const serial = document.getElementById('inv-product-select').value;
+  const price = parseFloat(document.getElementById('inv-price').value) || 0;
+  const qty = parseInt(document.getElementById('inv-qty').value) || 1;
+
+  if(!custName||!custPhone||!serial||!price) { showToast('Please fill all invoice fields.', true); return; }
+  const product = state.products.find(p=>p.serial===serial);
+  if(!product) { showToast('Product not found.', true); return; }
+
+  const invId = 'INV-' + String(state.nextInvoiceId++).padStart(3,'0');
+  const today = new Date().toISOString().split('T')[0];
+  const total = price * qty;
+  const tax = Math.round(total * 0.05);
+  const grand = total + tax;
+
+  state.invoices.push({ id:invId, customer:custName, phone:custPhone, product:product.name, serial, price, qty, date:today });
+
+  const html = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;border-bottom:2px solid #1e40af;padding-bottom:18px;">
+      <div>
+        <h1 style="font-size:24px;font-weight:800;color:#1e40af;margin:0 0 4px">TechCore</h1>
+        <p style="margin:2px 0;font-size:12px;color:#555;">Computer Shop Management System</p>
+        <p style="margin:2px 0;font-size:12px;color:#555;">📞 01700-000000 | Sylhet, Bangladesh</p>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:22px;font-weight:800;color:#1e40af;">INVOICE</div>
+        <div style="font-size:13px;color:#333;margin-top:6px;"><strong>${invId}</strong></div>
+        <div style="font-size:12px;color:#555;">Date: ${formatDate(today)}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:#f0f4ff;border-radius:8px;padding:12px;">
+        <div style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Bill To</div>
+        <div style="font-weight:700;color:#111;font-size:15px;">${custName}</div>
+        <div style="font-size:13px;color:#444;">📱 ${custPhone}</div>
+      </div>
+      <div style="background:#f0faf5;border-radius:8px;padding:12px;">
+        <div style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Product</div>
+        <div style="font-weight:600;color:#111;font-size:13px;">${product.name}</div>
+        <div style="font-size:12px;color:#444;">Serial: <strong style="font-family:monospace;">${serial}</strong></div>
+        <div style="font-size:12px;color:#444;">Warranty: ${product.warranty}</div>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <thead>
+        <tr style="background:#1e40af;color:white;">
+          <th style="padding:10px 12px;text-align:left;font-size:12px;">Item</th>
+          <th style="padding:10px 12px;text-align:center;font-size:12px;">Qty</th>
+          <th style="padding:10px 12px;text-align:right;font-size:12px;">Unit Price</th>
+          <th style="padding:10px 12px;text-align:right;font-size:12px;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #e5e7eb;">
+          <td style="padding:11px 12px;font-size:13px;"><strong>${product.name}</strong><br><span style="font-size:11px;color:#777;">${product.model} | SN: ${serial}</span></td>
+          <td style="padding:11px 12px;text-align:center;font-size:13px;">${qty}</td>
+          <td style="padding:11px 12px;text-align:right;font-size:13px;">${formatBDT(price)}</td>
+          <td style="padding:11px 12px;text-align:right;font-size:13px;font-weight:600;">${formatBDT(total)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="text-align:right;margin-bottom:20px;">
+      <div style="display:inline-block;min-width:220px;">
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;"><span style="color:#555;">Subtotal:</span><span>${formatBDT(total)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;"><span style="color:#555;">VAT (5%):</span><span>${formatBDT(tax)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:16px;font-weight:800;border-top:2px solid #1e40af;margin-top:4px;"><span>Grand Total:</span><span style="color:#1e40af;">${formatBDT(grand)}</span></div>
+      </div>
+    </div>
+    <div style="background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;padding:12px;font-size:12px;color:#92400e;">
+      <strong>⚠ Warranty Note:</strong> This product carries a ${product.warranty} warranty from the date of purchase. Please retain this invoice for warranty claims. Serial Number: <strong style="font-family:monospace;">${serial}</strong>
+    </div>
+    <div style="text-align:center;margin-top:18px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:12px;">
+      Thank you for shopping at TechCore! For support, call 01700-000000
+    </div>`;
+
+  document.getElementById('invoice-content').innerHTML = html;
+  document.getElementById('invoice-preview-wrap').style.display='block';
+  document.getElementById('past-invoices-panel').style.display='none';
+  renderPastInvoices();
+  refreshDashboard();
+  showToast('Invoice ' + invId + ' generated!');
+}
+
+function printInvoice() { window.print(); }
+
+function renderPastInvoices() {
+  const tbody = document.getElementById('past-invoices-body');
+  const none = document.getElementById('no-invoices');
+  if(state.invoices.length===0) { tbody.innerHTML=''; none.style.display='block'; return; }
+  none.style.display='none';
+  tbody.innerHTML = [...state.invoices].reverse().map(inv=>`<tr>
+    <td><span class="mono" style="font-size:12px;color:var(--accent)">${inv.id}</span></td>
+    <td><div style="font-weight:600">${inv.customer}</div><div style="font-size:11px;color:var(--text-muted)">${inv.phone}</div></td>
+    <td style="font-size:13px;color:var(--text-secondary)">${inv.product}</td>
+    <td style="font-weight:600">${formatBDT(inv.price * inv.qty)}</td>
+    <td style="font-size:12px;color:var(--text-muted)">${formatDate(inv.date)}</td>
+  </tr>`).join('');
+}
+
+// =================== WARRANTY ===================
+function lookupWarranty() {
+  const serial = document.getElementById('warranty-search-input').value.trim();
+  const result = document.getElementById('warranty-result');
+  if(!serial) { result.innerHTML=''; return; }
+
+  const product = state.products.find(p=>p.serial.toLowerCase()===serial.toLowerCase());
+  const invoice = state.invoices.find(i=>i.serial.toLowerCase()===serial.toLowerCase());
+  const claim = state.claims.find(c=>c.serial.toLowerCase()===serial.toLowerCase());
+
+  if(!product) {
+    result.innerHTML = `<div class="warranty-result" style="border-color:rgba(239,68,68,0.3);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="20" height="20" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <div style="font-weight:700;color:var(--text-primary)">Product Not Found</div>
+          <div style="font-size:13px;color:var(--text-secondary)">No product with serial <span class="mono">${serial}</span> exists in the system.</div>
+        </div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const w = product.warranty === 'Lifetime' ? null : warrantyDaysLeft(product.purchaseDate, product.warranty);
+  const isExpired = w && w.days < 0;
+  const isLifetime = product.warranty === 'Lifetime';
+  const statusColor = isLifetime ? 'var(--cyan)' : isExpired ? 'var(--red)' : w && w.days < 90 ? 'var(--yellow)' : 'var(--green)';
+  const statusText = isLifetime ? 'Lifetime Warranty' : isExpired ? 'Warranty Expired' : `${w.days} days remaining`;
+
+  result.innerHTML = `<div class="warranty-result" style="border-color:${statusColor}33;">
+    <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:220px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Product Details</div>
+        <div style="font-weight:700;font-size:15px;color:var(--text-primary);margin-bottom:4px;">${product.name}</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:2px;">Model: ${product.model}</div>
+        <div style="font-size:13px;color:var(--text-secondary);">Serial: <span class="mono" style="color:var(--cyan)">${product.serial}</span></div>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Warranty Status</div>
+        <div style="font-size:22px;font-weight:800;color:${statusColor};margin-bottom:4px;">${statusText}</div>
+        ${w ? `<div style="font-size:12px;color:var(--text-muted);">Expires: ${formatDate(w.expiry)}</div>` : ''}
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Period: ${product.warranty}</div>
+      </div>
+      ${invoice ? `<div style="flex:1;min-width:180px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Customer Info</div>
+        <div style="font-weight:600;color:var(--text-primary)">${invoice.customer}</div>
+        <div style="font-size:13px;color:var(--text-secondary)">${invoice.phone}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Purchased: ${formatDate(invoice.date)}</div>
+        <div style="font-size:12px;color:var(--text-muted);">Invoice: <span class="mono">${invoice.id}</span></div>
+      </div>` : ''}
+      ${claim ? `<div style="flex:1;min-width:160px;">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Service Claim</div>
+        <div>${statusBadge(claim.status)}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">${claim.issue}</div>
+        <div style="font-size:12px;color:var(--text-muted);">Claim: <span class="mono">${claim.id}</span></div>
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderClaims() {
+  const tbody = document.getElementById('claims-body');
+  const none = document.getElementById('no-claims');
+  if(state.claims.length===0) { tbody.innerHTML=''; none.style.display='block'; return; }
+  none.style.display='none';
+  tbody.innerHTML = state.claims.map(c=>`<tr>
+    <td><span class="mono" style="font-size:12px;color:var(--accent)">${c.id}</span></td>
+    <td><span class="mono" style="font-size:12px;color:var(--cyan)">${c.serial}</span></td>
+    <td style="font-weight:600;font-size:13px;">${c.product}</td>
+    <td><div style="font-weight:600">${c.customer}</div><div style="font-size:11px;color:var(--text-muted)">${c.phone}</div></td>
+    <td style="font-size:13px;color:var(--text-secondary);max-width:160px;">${c.issue}</td>
+    <td>
+      <select onchange="updateClaimStatus('${c.id}',this.value)" style="background:transparent;border:none;color:inherit;font-size:12px;cursor:pointer;padding:2px;">
+        ${['Pending','In Repair','Ready for Pickup','Completed'].map(s=>`<option value="${s}" ${s===c.status?'selected':''}>${s}</option>`).join('')}
+      </select>
+      ${statusBadge(c.status)}
+    </td>
+    <td style="font-size:12px;color:var(--text-muted)">${formatDate(c.date)}</td>
+    <td><button class="btn-danger" onclick="deleteClaim('${c.id}')">Remove</button></td>
+  </tr>`).join('');
+}
+
+function addClaim() {
+  const serial = document.getElementById('cl-serial').value.trim();
+  const customer = document.getElementById('cl-customer').value.trim();
+  const phone = document.getElementById('cl-phone').value.trim();
+  const issue = document.getElementById('cl-issue').value.trim();
+  const status = document.getElementById('cl-status').value;
+
+  if(!serial||!customer||!issue) { showToast('Please fill required fields.', true); return; }
+  const product = state.products.find(p=>p.serial.toLowerCase()===serial.toLowerCase());
+
+  const claimId = 'CLM-' + String(state.nextClaimId++).padStart(3,'0');
+  state.claims.push({
+    id: claimId, serial, product: product ? product.name : 'Unknown Product',
+    customer, phone, issue, status, date: new Date().toISOString().split('T')[0]
+  });
+  closeModal('add-claim-modal');
+  ['cl-serial','cl-customer','cl-phone','cl-issue'].forEach(id=>document.getElementById(id).value='');
+  renderClaims();
+  refreshDashboard();
+  showToast('Claim ' + claimId + ' submitted!');
+}
+
+function updateClaimStatus(id, status) {
+  const claim = state.claims.find(c=>c.id===id);
+  if(claim) { claim.status=status; renderClaims(); refreshDashboard(); showToast('Status updated to: ' + status); }
+}
+
+function deleteClaim(id) {
+  state.claims = state.claims.filter(c=>c.id!==id);
+  renderClaims(); refreshDashboard(); showToast('Claim removed.');
+}
+
+// =================== CUSTOMER PORTAL ===================
+function customerWarrantyCheck() {
+  const serial = document.getElementById('cust-serial-input').value.trim();
+  const result = document.getElementById('cust-warranty-result');
+  if(!serial) return;
+
+  const product = state.products.find(p=>p.serial.toLowerCase()===serial.toLowerCase());
+  if(!product) {
+    result.innerHTML = `<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px;color:var(--red);font-size:13.5px;font-weight:500;">
+      ✗ Serial number not found in our system. Please check and try again.
+    </div>`; return;
+  }
+
+  const w = product.warranty === 'Lifetime' ? null : warrantyDaysLeft(product.purchaseDate, product.warranty);
+  const isExpired = w && w.days < 0;
+  const color = !w ? 'var(--cyan)' : isExpired ? 'var(--red)' : w.days < 90 ? 'var(--yellow)' : 'var(--green)';
+  const claim = state.claims.find(c=>c.serial.toLowerCase()===serial.toLowerCase());
+
+  result.innerHTML = `<div style="background:var(--bg-primary);border:1px solid ${color}44;border-radius:10px;padding:16px;margin-top:4px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <div style="width:40px;height:40px;background:${color}18;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" fill="none" stroke="${color}" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;color:var(--text-primary)">${product.name}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">Model: ${product.model}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
+      <div><span style="color:var(--text-muted)">Serial:</span> <span class="mono" style="color:var(--cyan)">${product.serial}</span></div>
+      <div><span style="color:var(--text-muted)">Warranty:</span> ${product.warranty}</div>
+      <div><span style="color:var(--text-muted)">Status:</span> <span style="color:${color};font-weight:700;">${!w ? 'Lifetime ✓' : isExpired ? 'Expired ✗' : `${w.days} days left ✓`}</span></div>
+      ${w && !isExpired ? `<div><span style="color:var(--text-muted)">Expires:</span> ${formatDate(w.expiry)}</div>` : ''}
+    </div>
+    ${claim ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;"><span style="color:var(--text-muted)">Service Status:</span> ${statusBadge(claim.status)} <span style="color:var(--text-secondary);margin-left:6px;">${claim.issue}</span></div>` : ''}
+  </div>`;
+}
+
+function customerStockSearch(q) {
+  const query = (q !== undefined ? q : document.getElementById('cust-stock-search').value).toLowerCase();
+  const list = state.products.filter(p => p.qty > 0 && (!query || p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query)));
+  const el = document.getElementById('cust-stock-results');
+  if(list.length===0) {
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No in-stock products found.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+    <div>
+      <div style="font-weight:600;font-size:14px;color:var(--text-primary)">${p.name}</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${p.model} &nbsp;·&nbsp; <span class="chip">${p.category}</span> &nbsp;·&nbsp; Warranty: ${p.warranty}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;margin-left:12px;">
+      ${stockBadge(p.qty)}
+    </div>
+  </div>`).join('');
+}
+
+// =================== INIT ===================
+window.addEventListener('DOMContentLoaded', () => {
+  refreshDashboard();
+  renderInventory();
+  renderCustomerStock = customerStockSearch;
+});
+</script>
+</body>
+</html>
